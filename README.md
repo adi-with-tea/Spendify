@@ -1,0 +1,2 @@
+# Spendify
+A modern, minimal, and intelligent website called Spendify, powered by Agentic AI. The website helps users analyze their finances, optimize expenses, and plan investments automatically using smart, AI-driven insights.
