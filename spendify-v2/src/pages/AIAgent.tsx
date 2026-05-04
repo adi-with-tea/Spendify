@@ -104,8 +104,6 @@ export default function AIAgent({ state }: Props) {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [apiKey, setApiKey] = useState('');
-  const [showKeyInput, setShowKeyInput] = useState(false);
   const [error, setError] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -126,12 +124,9 @@ export default function AIAgent({ state }: Props) {
     try {
       const apiMessages = newMessages.map(m => ({ role: m.role, content: m.content }));
 
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (apiKey) headers['x-api-key'] = apiKey;
-
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/claude', {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
           max_tokens: 1000,
@@ -142,12 +137,7 @@ export default function AIAgent({ state }: Props) {
 
       if (!res.ok) {
         const err = await res.json();
-        if (res.status === 401) {
-          setError('Invalid or missing API key. Click "Set API Key" to add your Anthropic API key.');
-          setShowKeyInput(true);
-        } else {
-          setError(`API error: ${err.error?.message || res.statusText}`);
-        }
+        setError(`API error: ${err.error?.message || res.statusText}`);
         setMessages(prev => prev.slice(0, -1));
         setLoading(false);
         return;
@@ -172,30 +162,7 @@ export default function AIAgent({ state }: Props) {
       <PageHeader
         title="AI Agent"
         sub="Powered by Claude · Knows your real data"
-        action={
-          <Btn variant="ghost" style={{ fontSize: '0.8rem', padding: '8px 14px' }} onClick={() => setShowKeyInput(v => !v)}>
-            🔑 {apiKey ? 'API Key Set ✓' : 'Set API Key'}
-          </Btn>
-        }
       />
-
-      {showKeyInput && (
-        <Card style={{ marginBottom: 16, padding: '16px 20px' }}>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text2)', marginBottom: 10 }}>
-            Enter your Anthropic API key to enable the AI Agent. Get one at <a href="https://console.anthropic.com" target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>console.anthropic.com</a>. Your key is stored only in this browser session.
-          </p>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <input
-              type="password"
-              placeholder="sk-ant-..."
-              value={apiKey}
-              onChange={e => setApiKey(e.target.value)}
-              style={{ flex: 1, background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '10px 14px', color: 'var(--text)', outline: 'none' }}
-            />
-            <Btn onClick={() => { setShowKeyInput(false); setError(''); }}>Save</Btn>
-          </div>
-        </Card>
-      )}
 
       {/* Quick actions */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
